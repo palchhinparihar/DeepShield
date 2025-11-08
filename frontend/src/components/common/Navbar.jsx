@@ -1,77 +1,73 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
+import { FiLogIn, FiLogOut } from 'react-icons/fi';
+import Profile from '../main/Profile';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const { loginWithRedirect, logout, isAuthenticated, isLoading } = useAuth0();
 
+  const navItems = [
+    { label: 'Home', to: '/' },
+    { label: 'About', to: '/about' },
+    { label: 'FAQ', to: '/faq' },
+    { label: 'Privacy Policy', to: '/privacy-policy' },
+  ];
+
   const linkClass = ({ isActive }) =>
-    `block px-3 py-2 rounded-md text-base lg:text-sm ${
-      isActive ? 'text-blue-600 font-semibold' : 'text-gray-700 hover:text-blue-600'
+    `block px-3 py-2 rounded-md text-base md:text-lg ${isActive ? 'text-[#D9A981] font-semibold' : 'text-white hover:text-[#D9A981]'
     }`;
 
-  const btnClass = 'px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700';
+  const loginBtnClass = "flex items-center gap-2 py-2 px-2.5 md:px-4 border border-blue-400 text-blue-400 font-semibold rounded-lg transition duration-150 hover:bg-blue-400 hover:text-white cursor-pointer";
+  const logoutBtnClass = "flex items-center gap-2 py-2 px-2.5 md:px-4 border border-red-500 text-red-500 font-semibold rounded-lg transition duration-150 hover:bg-red-600 hover:text-white cursor-pointer";
 
   if (isLoading) return null; // prevents flicker while Auth0 is initializing
 
   return (
-    <nav className="bg-white shadow">
+    <nav className="w-full md:w-[75%] mx-auto md:rounded-full md:border-2 md:border-gray-200 bg-black/10 backdrop-blur-md shadow sticky top-0 md:top-4 z-50 md:px-5">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-3">
-          {/* Brand */}
-          <NavLink to="/" className="text-xl font-bold text-gray-900">
-            DeepShield
-          </NavLink>
+          <div className="flex items-center space-x-8">
+            {/* Brand */}
+            <NavLink to="/" className="text-xl md:text-2xl font-bold text-purple-500">
+              DeepShield
+            </NavLink>
+
+            {/** centralize nav items to avoid duplication */}
+            <ul className="hidden md:flex items-center space-x-3">
+              {navItems.map((item) => (
+                <li key={item.to}>
+                  <NavLink to={item.to} className={linkClass} aria-current={item.to === '/'}>
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
 
           {/* desktop menu */}
           <div className="hidden lg:flex lg:items-center lg:space-x-6">
-            <ul className="flex items-center space-x-4">
-              <li>
-                <NavLink to="/" className={linkClass} aria-current="page">
-                  Home
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/about" className={linkClass}>
-                  About
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/faq" className={linkClass}>
-                  FAQ
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/privacy-policy" className={linkClass}>
-                  Privacy Policy
-                </NavLink>
-              </li>
-            </ul>
+            {isAuthenticated && <Profile />}
 
-            {/* Auth Buttons */}
-            {isAuthenticated ? (
-              <button
-                onClick={() =>
-                  logout({ logoutParams: { returnTo: window.location.origin } })
-                }
-                className={btnClass}
-              >
-                Logout
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
+            {/* Auth Buttons (desktop) - use icons and small helper to avoid duplication */}
+            <div>
+              {isAuthenticated ? (
                 <button
-                  onClick={() => loginWithRedirect()}
-                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50"
+                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+                  className={logoutBtnClass}
+                  title="Logout"
                 >
-                  Login
+                  <FiLogOut size={24} />
                 </button>
-                <button onClick={() => loginWithRedirect()} className={btnClass}>
-                  Signup
-                </button>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => loginWithRedirect()} className={loginBtnClass} title="Login">
+                    <FiLogIn size={24} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* mobile toggle */}
@@ -98,26 +94,13 @@ const Navbar = () => {
         {open && (
           <div className="lg:hidden pb-4">
             <ul className="space-y-2">
-              <li>
-                <NavLink to="/" className={linkClass} onClick={() => setOpen(false)}>
-                  Home
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/about" className={linkClass} onClick={() => setOpen(false)}>
-                  About
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/faq" className={linkClass} onClick={() => setOpen(false)}>
-                  FAQ
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/privacy-policy" className={linkClass} onClick={() => setOpen(false)}>
-                  Privacy Policy
-                </NavLink>
-              </li>
+              {navItems.map((item) => (
+                <li key={item.to}>
+                  <NavLink to={item.to} className={linkClass} onClick={() => setOpen(false)}>
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
             </ul>
 
             <div className="mt-4">
@@ -127,9 +110,10 @@ const Navbar = () => {
                     logout({ logoutParams: { returnTo: window.location.origin } });
                     setOpen(false);
                   }}
-                  className={btnClass}
+                  className={logoutBtnClass}
                 >
-                  Logout
+                  <FiLogOut className="w-4 h-4" />
+                  <span className="ml-2">Logout</span>
                 </button>
               ) : (
                 <div className="flex flex-col gap-2">
@@ -140,16 +124,8 @@ const Navbar = () => {
                     }}
                     className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md text-center"
                   >
+                    <FiLogIn className="inline w-4 h-4 mr-2" />
                     Login
-                  </button>
-                  <button
-                    onClick={() => {
-                      loginWithRedirect();
-                      setOpen(false);
-                    }}
-                    className={btnClass}
-                  >
-                    Signup
                   </button>
                 </div>
               )}
