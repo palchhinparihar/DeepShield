@@ -1,0 +1,20 @@
+# Ignore Python virtual environments
+venv/
+
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment and secret files
+.env
+*.env
+
+# Model files (if large)
+*.h5
+*.keras
+
+# OS files
+.DS_Store
+Thumbs.db
