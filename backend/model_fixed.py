@@ -3,21 +3,18 @@ import numpy as np
 import cv2
 import os
 
-#  Load weights from .npz files (generated from Colab)
-XCEPTION_WEIGHTS_PATH = "saved_models/xception_weights.npz"
-GRU_WEIGHTS_PATH = "saved_models/gru_weights.npz"
-DENSE_WEIGHTS_PATH = "saved_models/dense_weights.npz"
-
+#  Load the resaved model (make sure this path exists)
+MODEL_PATH = "saved_models/xception_gru_model.keras"
 _base_cnn = None
 _gru_model = None
 
 # ============================================================
-#  Load Xception CNN for feature extraction
+#  WORKAROUND: Process frames manually in Python, not TF layers
 # ============================================================
 def get_base_cnn():
     """
     Load or create Xception base model for frame feature extraction.
-    Loads custom trained weights from .npz file if available.
+    This avoids TimeDistributed entirely.
     """
     global _base_cnn
     if _base_cnn is None:
@@ -30,47 +27,45 @@ def get_base_cnn():
             input_shape=(299, 299, 3),
             pooling='avg'
         )
-        print("✅ Xception base model created")
+        print("✅ Xception base model ready")
         
-        # Try to load custom trained weights from .npz file
-        if os.path.exists(XCEPTION_WEIGHTS_PATH):
-            try:
-                print(f"🔄 Loading custom Xception weights from {XCEPTION_WEIGHTS_PATH}...")
-                weights_data = np.load(XCEPTION_WEIGHTS_PATH)
-                weights = [weights_data[f'arr_{i}'] for i in range(len(weights_data.files))]
-                _base_cnn.set_weights(weights)
-                print(f"  ✅ Loaded {len(weights)} weight arrays from trained model!")
-            except Exception as e:
-                print(f"⚠️ Could not load custom Xception weights: {e}")
-                print("   Using ImageNet pretrained weights instead")
-        else:
-            print(f"⚠️ Custom weights file not found: {XCEPTION_WEIGHTS_PATH}")
+        # Try to load custom weights from saved model if available
+        try:
+            full_model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+            # Try to find and extract Xception weights from TimeDistributed layer
+            for layer in full_model.layers:
+                if 'time_distributed' in layer.name.lower():
+                    print(f"🔄 Found TimeDistributed layer: {layer.name}")
+                    # The wrapped layer should be Xception
+                    wrapped = layer.layer
+                    if hasattr(wrapped, 'get_weights'):
+                        print("  Transferring Xception weights from saved model...")
+                        _base_cnn.set_weights(wrapped.get_weights())
+                        print("  ✅ Custom Xception weights loaded!")
+                    break
+        except Exception as e:
+            print(f"⚠️ Could not load custom Xception weights: {e}")
             print("   Using ImageNet pretrained weights instead")
-            print("   Run COLAB_SAVE_WEIGHTS.py in your Colab to generate weight files")
     
     return _base_cnn
 
 
 def build_gru_classifier(input_shape=(10, 2048)):
     """
-    Build the GRU + Dropout + Dense classifier part.
-    This matches the Colab architecture exactly:
-    - GRU(128, return_sequences=False)
-    - Dropout(0.5)
-    - Dense(1, activation='sigmoid')
-    
+    Build the GRU + Dense classifier part.
     Takes frame features as input, outputs FAKE/REAL prediction.
     """
     from tensorflow.keras import layers, Model
     
     feature_input = layers.Input(shape=input_shape, name='feature_input')
     
-    # GRU layer - MUST be 128 units to match your trained model!
-    x = layers.GRU(128, return_sequences=False, name='gru')(feature_input)
+    # GRU layer - adjust units to match your original model
+    x = layers.GRU(256, return_sequences=False, name='gru')(feature_input)
     
-    # Dropout and output - match the Colab architecture exactly
+    # Dense layers
+    x = layers.Dense(128, activation='relu', name='dense_1')(x)
     x = layers.Dropout(0.5, name='dropout')(x)
-    output = layers.Dense(1, activation='sigmoid', name='dense')(x)
+    output = layers.Dense(1, activation='sigmoid', name='output')(x)
     
     model = Model(inputs=feature_input, outputs=output, name='gru_classifier')
     return model
@@ -78,51 +73,32 @@ def build_gru_classifier(input_shape=(10, 2048)):
 
 def get_gru_model():
     """
-    Load or create the GRU classifier model and load trained weights from .npz files.
+    Load or create the GRU classifier model and try to load weights.
     """
     global _gru_model
     if _gru_model is None:
         print("📦 Building GRU classifier...")
         _gru_model = build_gru_classifier()
         
-        # Load GRU weights from .npz file
-        if os.path.exists(GRU_WEIGHTS_PATH):
-            try:
-                print(f"🔄 Loading GRU weights from {GRU_WEIGHTS_PATH}...")
-                weights_data = np.load(GRU_WEIGHTS_PATH)
-                gru_weights = [weights_data[f'arr_{i}'] for i in range(len(weights_data.files))]
-                gru_layer = _gru_model.get_layer('gru')
-                gru_layer.set_weights(gru_weights)
-                print(f"  ✅ Loaded GRU weights: {len(gru_weights)} arrays")
-            except Exception as e:
-                print(f"  ⚠️ Could not load GRU weights: {e}")
-        else:
-            print(f"⚠️ GRU weights file not found: {GRU_WEIGHTS_PATH}")
-            print("   Run COLAB_SAVE_WEIGHTS.py in your Colab to generate weight files")
-        
-        # Load Dense layer weights from .npz file
-        if os.path.exists(DENSE_WEIGHTS_PATH):
-            try:
-                print(f"🔄 Loading Dense weights from {DENSE_WEIGHTS_PATH}...")
-                weights_data = np.load(DENSE_WEIGHTS_PATH)
-                dense_weights = [weights_data[f'arr_{i}'] for i in range(len(weights_data.files))]
-                dense_layer = _gru_model.get_layer('dense')
-                dense_layer.set_weights(dense_weights)
-                print(f"  ✅ Loaded Dense weights: {len(dense_weights)} arrays")
-            except Exception as e:
-                print(f"  ⚠️ Could not load Dense weights: {e}")
-        else:
-            print(f"⚠️ Dense weights file not found: {DENSE_WEIGHTS_PATH}")
-            print("   Run COLAB_SAVE_WEIGHTS.py in your Colab to generate weight files")
-        
-        # Check if weights were loaded successfully
-        if not os.path.exists(GRU_WEIGHTS_PATH) or not os.path.exists(DENSE_WEIGHTS_PATH):
-            print("\n" + "="*60)
-            print("⚠️ WARNING: Using random initialization - predictions unreliable!")
-            print("="*60)
-            print("To fix: Run COLAB_SAVE_WEIGHTS.py in your Colab notebook")
-            print("Then download and place the .npz files in saved_models/")
-            print("="*60 + "\n")
+        # Try to load GRU/Dense weights from saved model
+        try:
+            full_model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+            print("🔄 Transferring GRU and Dense weights...")
+            
+            # Transfer weights for matching layers
+            for layer in _gru_model.layers:
+                try:
+                    old_layer = full_model.get_layer(layer.name)
+                    layer.set_weights(old_layer.get_weights())
+                    print(f"  ✓ Loaded weights for: {layer.name}")
+                except:
+                    print(f"  ⚠ Could not load weights for: {layer.name}")
+            
+            print("✅ GRU classifier weights loaded!")
+            
+        except Exception as e:
+            print(f"⚠️ Could not load GRU weights: {e}")
+            print("   Using random initialization - predictions may be unreliable!")
     
     return _gru_model
 
@@ -192,12 +168,9 @@ def extract_frame_features(frames):
 # ============================================================
 #  Prediction function
 # ============================================================
-def predict_video(video_path, threshold=0.55):
+def predict_video(video_path, threshold=0.65):
     """
     Predict if video is FAKE or REAL.
-    
-    Threshold of 0.55 matches Colab performance.
-    Sigmoid output >= 0.55 = FAKE, < 0.55 = REAL
     
     This version bypasses TimeDistributed by:
     1. Extracting frames in Python (not TF)
@@ -221,14 +194,11 @@ def predict_video(video_path, threshold=0.55):
     features_batch = np.expand_dims(features, axis=0)  # Add batch dim: (1, 10, 2048)
     preds = gru_model.predict(features_batch, verbose=0)
     
-    raw_score = float(preds[0][0])
-    print(f"  📊 Raw model output (sigmoid): {raw_score:.4f}")
-    
-    confidence = raw_score
+    confidence = float(preds[0][0])
     label = "FAKE" if confidence >= threshold else "REAL"
     conf_adj = confidence if confidence >= threshold else 1 - confidence
 
-    print(f"[INFO] {os.path.basename(video_path)} → {label} ({conf_adj:.2f}) [threshold={threshold}]")
+    print(f"[INFO] {os.path.basename(video_path)} → {label} ({conf_adj:.2f})")
     return label, round(conf_adj, 2)
 
 

@@ -11,6 +11,12 @@ __pycache__/
 .env
 *.env
 
+# Upload files
+/uploads/
+
+# Saved Models
+/saved_models/
+
 # Model files (if large)
 *.h5
 *.keras
