@@ -1,8 +1,29 @@
-import React from 'react'
+import { useEffect } from 'react';
 import { FiArrowRight, FiUnlock } from 'react-icons/fi'
-import { NavLink } from 'react-router-dom'
+import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
+  const { isAuthenticated, loginWithRedirect, isLoading } = useAuth0();
+  const navigate = useNavigate();
+
+  const handleStart = async () => {
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
+      await loginWithRedirect({
+        appState: { returnTo: '/upload' },
+      });
+    } else {
+      navigate('/upload');
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate('/upload');
+    }
+  }, [isAuthenticated, isLoading, navigate]);
   return (
     <main>
       <div className="px-6 w-full min-h-[92vh] flex flex-col justify-center items-center">
@@ -13,10 +34,14 @@ export default function Home() {
         <p className="text-base text-center text-gray-400 mb-6">
           Upload videos and check if they are deepfakes (fake videos) or not.
         </p>
-        <NavLink to="/upload" className="flex justify-center items-center gap-1.5 text-base md:text-xl group border-2 border-purple-500 text-purple-500 px-4 py-2 rounded-xl font-bold hover:text-white hover:bg-purple-600 transition duration-300">
+        <button
+          onClick={handleStart}
+          className="flex justify-center items-center gap-1.5 text-base md:text-xl group border-2 border-purple-500 text-purple-500 px-4 py-2 rounded-xl font-bold hover:text-white hover:bg-purple-600 transition duration-300"
+        >
           Start
           <FiArrowRight size={22} className="group-hover:animate-pulse" />
-        </NavLink>
+        </button>
+
       </div>
     </main>
   )

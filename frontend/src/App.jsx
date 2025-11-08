@@ -9,6 +9,7 @@ import About from "./components/main/About";
 import FAQ from "./components/main/FAQ";
 import PrivacyPolicy from "./components/main/PrivacyPolicy";
 import UploadVideo from "./components/main/UploadVideo";
+import PrivateRoute from "./components/main/PrivateRoute";
 
 const App = () => {
   return (
@@ -30,8 +31,17 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/upload" element={<UploadVideo />} />
-        <Route path="/about" element={<About />} />
+        <Route
+          path="/upload"
+          element={
+            <PrivateRoute>
+              <UploadVideo />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/about" element={
+            <About />
+        } />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
