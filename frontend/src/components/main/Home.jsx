@@ -1,10 +1,11 @@
+import React from 'react'
+import Profile from '../Profile'
 
-const Home = () => {
+export default function Home() {
   return (
-    <section className="min-h-[65vh]">
-      Home
-    </section>
+    <div style={{ textAlign: 'center', marginTop: '100px' }}>
+      <h1>Welcome to DeepShield 🔐</h1>
+      <Profile />
+    </div>
   )
 }
-
-export default Home;
