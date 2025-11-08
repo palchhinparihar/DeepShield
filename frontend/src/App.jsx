@@ -1,8 +1,25 @@
-import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Footer from "./components/common/Footer";
+import Home from "./components/main/Home";
+import About from "./components/main/About";
+import FAQ from "./components/main/FAQ";
+import PrivacyPolicy from "./components/main/PrivacyPolicy";
+import Navbar from "./components/common/Navbar";
 
 const App = () => {
   return (
-    <div>DeepShield</div>
+    <Router>
+      <Navbar />
+      
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      </Routes>
+
+      <Footer />
+    </Router>
   )
 }
 
