@@ -39,9 +39,7 @@ const App = () => {
             </PrivateRoute>
           }
         />
-        <Route path="/about" element={
-            <About />
-        } />
+        <Route path="/about" element={<About />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       </Routes>
