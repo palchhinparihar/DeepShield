@@ -11,13 +11,13 @@ const points = [
 const About = () => {
   return (
     <section className="w-full md:w-[80%] mx-auto px-4 py-12">
-      <h1 className="text-5xl md:text-7xl text-center font-bold flex items-center justify-center gap-1 md:gap-5 mb-8 text-purple-200">
+      <h1 data-aos="fade-in" className="text-5xl md:text-7xl text-center font-bold flex items-center justify-center gap-1 md:gap-5 mb-8 text-purple-200">
         About DeepShield
         <FiBookOpen size={80} className="hidden md:block" />
       </h1>
 
       <div>
-        <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg pt-10 pb-8 text-center px-5">
+        <div data-aos="fade-out" className="bg-white dark:bg-gray-800 shadow-md rounded-lg pt-10 pb-8 text-center px-5">
           <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
             DeepShield empowers individuals, journalists, and organizations to verify the authenticity of digital media in an age of misinformation.
           </p>
@@ -27,18 +27,22 @@ const About = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8 my-10">
-          {points.map((p) => (
+          {points.map((p, index) => (
             <article
+              data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}
               key={p}
-              className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 md:p-8 min-h-[120px] flex items-start gap-4 hover:scale-105 transition-transform duration-300 group"
             >
-              <FiCheckCircle className="text-purple-500 group-hover:text-purple-700 group-hover:animate-bounce mt-1 shrink-0" size={30} />
-              <p className="text-base md:text-lg text-gray-700 dark:text-gray-300">{p}</p>
+              <div
+                className="bg-gray-50 h-full dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 md:p-8 min-h-[120px] flex items-start gap-4 hover:scale-105 transition-transform duration-300 group"
+              >
+                <FiCheckCircle className="text-purple-500 group-hover:text-purple-700 group-hover:animate-bounce mt-1 shrink-0" size={30} />
+                <p className="text-base md:text-lg text-gray-700 dark:text-gray-300">{p}</p>
+              </div>
             </article>
           ))}
         </div>
 
-        <div className="text-sm md:text-base text-gray-700 dark:text-gray-300">
+        <div data-aos="fade-up" className="text-sm md:text-base text-gray-700 dark:text-gray-300">
           <p>
             <strong>How it works:</strong> DeepShield extracts key frames from your video, processes them through a
             convolutional and recurrent neural network pipeline, and outputs a confidence score between <strong>0 (real)</strong> and <strong>1 (fake)</strong>.

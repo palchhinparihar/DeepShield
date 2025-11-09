@@ -39,22 +39,26 @@ const PrivacyPolicy = () => {
 
       {/* Card Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {sections.map((s) => (
+        {sections.map((s, index) => (
           <article
+            data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}
             key={s.title}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-md p-6 md:p-8 hover:scale-105 transition-transform duration-300 group"
           >
-            <h2 className="text-xl md:text-2xl font-semibold text-purple-500 mb-3 flex items-center gap-2">
-              <FiShield className="text-purple-500 group-hover:text-purple-700 group-hover:animate-bounce mt-1 shrink-0" size={30} />
-              {s.title}
-            </h2>
-            <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base leading-relaxed">{s.body}</p>
+            <div
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-md p-6 md:p-8 hover:scale-105 transition-transform duration-300 group"
+            >
+              <h2 className="text-xl md:text-2xl font-semibold text-purple-500 mb-3 flex items-center gap-2">
+                <FiShield className="text-purple-500 group-hover:text-purple-700 group-hover:animate-bounce mt-1 shrink-0" size={30} />
+                {s.title}
+              </h2>
+              <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base leading-relaxed">{s.body}</p>
+            </div>
           </article>
         ))}
       </div>
 
       {/* Contact Card */}
-      <div className="mt-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-md p-6 md:p-8">
+      <div data-aos="fade-up" className="mt-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-md p-6 md:p-8">
         <h2 className="text-xl md:text-2xl font-semibold text-purple-500 mb-2">Contact Us</h2>
         <p className="text-gray-700 dark:text-gray-300 text-sm md:text-base">
           If you have any privacy-related concerns, questions, or requests for data deletion, please contact us at{' '}

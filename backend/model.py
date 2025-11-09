@@ -224,8 +224,10 @@ def predict_video(video_path, threshold=0.55):
     raw_score = float(preds[0][0])
     print(f"  📊 Raw model output (sigmoid): {raw_score:.4f}")
     
+    # Inverted logic: High score = REAL, Low score = FAKE
+    # This assumes the model was trained with 1=REAL, 0=FAKE
     confidence = raw_score
-    label = "FAKE" if confidence >= threshold else "REAL"
+    label = "REAL" if confidence >= threshold else "FAKE"
     conf_adj = confidence if confidence >= threshold else 1 - confidence
 
     print(f"[INFO] {os.path.basename(video_path)} → {label} ({conf_adj:.2f}) [threshold={threshold}]")

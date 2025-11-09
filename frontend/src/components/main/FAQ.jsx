@@ -41,6 +41,7 @@ const FAQ = () => {
       <div className="space-y-4">
         {faqs.map((item, index) => (
           <div
+            data-aos="fade-up"
             key={item.q}
             className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl shadow-md transition-all duration-200"
           >

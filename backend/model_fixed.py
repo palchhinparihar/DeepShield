@@ -195,7 +195,9 @@ def predict_video(video_path, threshold=0.65):
     preds = gru_model.predict(features_batch, verbose=0)
     
     confidence = float(preds[0][0])
-    label = "FAKE" if confidence >= threshold else "REAL"
+    # Inverted logic: High score = REAL, Low score = FAKE
+    # This assumes the model was trained with 1=REAL, 0=FAKE
+    label = "REAL" if confidence >= threshold else "FAKE"
     conf_adj = confidence if confidence >= threshold else 1 - confidence
 
     print(f"[INFO] {os.path.basename(video_path)} → {label} ({conf_adj:.2f})")
