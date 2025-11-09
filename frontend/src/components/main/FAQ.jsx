@@ -35,7 +35,7 @@ const FAQ = () => {
     <section className="w-full md:w-[80%] mx-auto px-4 py-12">
       <h1 className="text-5xl md:text-7xl text-center font-bold flex items-center justify-center gap-1 md:gap-3 mb-10 text-purple-200">
         Frequently Asked Questions
-        <FiHelpCircle size={80} className="hidden md:block" />
+        <FiHelpCircle size={80} className="hidden lg:block" />
       </h1>
 
       <div className="space-y-4">

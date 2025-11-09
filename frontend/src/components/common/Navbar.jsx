@@ -25,7 +25,7 @@ const Navbar = () => {
   if (isLoading) return null; // prevents flicker while Auth0 is initializing
 
   return (
-    <nav data-aos="fade-in" className="w-full md:w-[75%] mx-auto md:rounded-full md:border-2 md:border-gray-600 bg-black/10 backdrop-blur-md shadow sticky top-0 md:top-4 z-50 md:px-5">
+    <nav data-aos="fade-in" className="w-full lg:w-[75%] mx-auto md:rounded-full lg:border-2 md:border-gray-600 bg-black/10 backdrop-blur-md shadow sticky top-0 lg:top-4 z-50 lg:px-5">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center space-x-8">
@@ -35,7 +35,7 @@ const Navbar = () => {
             </NavLink>
 
             {/** centralize nav items to avoid duplication */}
-            <ul className="hidden md:flex items-center space-x-3">
+            <ul className="hidden lg:flex items-center space-x-3">
               {navItems.map((item) => (
                 <li key={item.to}>
                   <NavLink to={item.to} className={linkClass} aria-current={item.to === '/'}>

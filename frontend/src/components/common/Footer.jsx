@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { FiGithub } from "react-icons/fi";
+import { FiArrowRight, FiGithub } from "react-icons/fi";
 import { AiFillHeart as Heart } from "react-icons/ai";
 
 const Footer = () => {
@@ -10,7 +10,7 @@ const Footer = () => {
     { label: "FAQ", to: "/faq" },
     { label: "Privacy Policy", to: "/privacy-policy" },
   ];
-  const linkClass = `transition-colors hover:underline hover:text-[#D9A981]`;
+  const linkClass = "transition-colors hover:underline hover:text-[#D9A981]";
 
   return (
     <footer

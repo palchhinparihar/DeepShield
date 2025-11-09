@@ -13,15 +13,15 @@ const About = () => {
     <section className="w-full md:w-[80%] mx-auto px-4 py-12">
       <h1 data-aos="fade-in" className="text-5xl md:text-7xl text-center font-bold flex items-center justify-center gap-1 md:gap-5 mb-8 text-purple-200">
         About DeepShield
-        <FiBookOpen size={80} className="hidden md:block" />
+        <FiBookOpen size={80} className="hidden lg:block" />
       </h1>
 
       <div>
         <div data-aos="fade-out" className="bg-white dark:bg-gray-800 shadow-md rounded-lg pt-10 pb-8 text-center px-5">
-          <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <p className="text-lg md:text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">
             DeepShield empowers individuals, journalists, and organizations to verify the authenticity of digital media in an age of misinformation.
           </p>
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <p className="text-sm md:text-base text-gray-700 dark:text-gray-300">
             Using an AI model inspired by <strong>XceptionNet</strong> and <strong>GRU</strong> architectures, DeepShield captures both spatial and temporal cues from video sequences to detect deepfakes with high precision.
           </p>
         </div>
@@ -42,7 +42,7 @@ const About = () => {
           ))}
         </div>
 
-        <div data-aos="fade-up" className="text-sm md:text-base text-gray-700 dark:text-gray-300">
+        <div data-aos="fade-in" className="text-sm md:text-base text-gray-700 dark:text-gray-300">
           <p>
             <strong>How it works:</strong> DeepShield extracts key frames from your video, processes them through a
             convolutional and recurrent neural network pipeline, and outputs a confidence score between <strong>0 (real)</strong> and <strong>1 (fake)</strong>.

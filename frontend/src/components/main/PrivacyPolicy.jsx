@@ -34,7 +34,7 @@ const PrivacyPolicy = () => {
       {/* Title Section */}
       <h1 className="text-5xl md:text-7xl text-center font-bold flex items-center justify-center gap-2 md:gap-3 mb-12 text-purple-200">
         Privacy Policy
-        <FiLock size={70} className="hidden md:block" />
+        <FiLock size={70} className="hidden lg:block" />
       </h1>
 
       {/* Card Section */}

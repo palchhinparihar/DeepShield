@@ -23,7 +23,7 @@ export default function Home() {
       <div className="px-6 w-full min-h-[92vh] flex flex-col justify-center items-center">
         <h1 data-aos="fade-in" className="text-5xl md:text-7xl text-center font-bold flex items-center justify-center gap-1 md:gap-3 mb-8">
           Welcome to DeepShield
-          <FiUnlock size={80} className="hidden md:block" />
+          <FiUnlock size={80} className="hidden lg:block animate-bounce" />
         </h1>
         <p data-aos="fade-out" className="text-base md:text-lg text-center text-gray-400 mb-6">
           Upload videos and check if they are deepfakes (fake videos) or not.

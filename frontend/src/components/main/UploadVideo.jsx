@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiActivity, FiPlusCircle, FiTrash2, FiVideo } from "react-icons/fi";
 import { apiClient } from "../../api/apiClient";
+import { useAuth0 } from '@auth0/auth0-react';
 
 const UploadVideo = () => {
+  const { user, isAuthenticated, isLoading } = useAuth0()
+  if (isLoading) return <div>Loading...</div>
+  if (!isAuthenticated) return <div>Please log in</div>
+
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [duration, setDuration] = useState(null);
@@ -88,6 +93,11 @@ const UploadVideo = () => {
     const form = new FormData();
     form.append("file", file);
     if (duration) form.append("duration", duration);
+    if (user) {
+      form.append("user_email", user.email);
+      form.append("user_name", user.name);
+      form.append("user_profile", user.picture);
+    }
 
     try {
       const data = await apiClient("/predict", form);
@@ -122,13 +132,14 @@ const UploadVideo = () => {
 
   return (
     <section className="w-full md:w-[80%] mx-auto px-10 md:px-4 py-8">
-      <h1 className="text-5xl md:text-7xl text-center font-bold mt-5 flex items-center justify-center gap-1 md:gap-5 mb-8 text-purple-200">
+      <h1 data-aos="fade-in" className="text-5xl md:text-7xl text-center font-bold mt-5 flex items-center justify-center gap-1 md:gap-5 mb-8 text-purple-200">
         Upload a short video
-        <FiVideo size={80} className="hidden md:block mt-1.5" />
+        <FiVideo size={80} className="hidden lg:block mt-1.5" />
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div
+          data-aos="zoom-in"
           className={`w-full min-h-[200px] md:min-h-[250px] mb-5 bg-gray-800 rounded-xl flex flex-col justify-center items-center hover:shadow-lg hover:shadow-purple-400 transition duration-300 ${file ? "opacity-90 cursor-not-allowed" : ""
             }`}
         >
@@ -154,10 +165,10 @@ const UploadVideo = () => {
           </p>
         </div>
 
-        {error && <div className="text-sm text-center text-red-600">{error}</div>}
+        {error && <div data-aos="fade-out" className="text-sm text-center text-red-600">{error}</div>}
 
         {preview && (
-          <div className="w-full min-h-[200px] md:min-h-[250px] mt-7 mb-8 px-4 md:px-0 bg-gray-800 rounded-xl flex flex-col justify-center items-center hover:shadow-lg hover:shadow-purple-400 transition duration-300 ">
+          <div data-aos="fade-up" className="w-full min-h-[200px] md:min-h-[250px] mt-7 mb-8 px-4 md:px-0 bg-gray-800 rounded-xl flex flex-col justify-center items-center hover:shadow-lg hover:shadow-purple-400 transition duration-300 ">
             <video
               key={preview}
               ref={videoRef}
@@ -185,7 +196,7 @@ const UploadVideo = () => {
           </div>
         )}
 
-        <div className="flex justify-center items-center gap-3 mt-8">
+        <div data-aos="fade-up" className="flex justify-center items-center gap-3 mt-8">
           <button
             type="submit"
             disabled={uploading || !file}
@@ -207,11 +218,11 @@ const UploadVideo = () => {
         </div>
       </form>
 
-      <div className="flex flex-col justify-center items-center my-6">
-        <h2 className="text-xl md:text-2xl font-semibold mb-2">
+      <div data-aos="fade-in" className="flex flex-col justify-center items-center my-6">
+        <h2 className="text-xl md:text-2xl font-semibold mb-2 text-red-500">
           Important disclaimers
         </h2>
-        <ul className="text-sm text-center text-gray-400 space-y-2">
+        <ul className="text-sm text-center text-gray-300 space-y-2">
           {disclaimers.map((d) => (
             <p key={d}>- {d}</p>
           ))}
@@ -219,13 +230,12 @@ const UploadVideo = () => {
       </div>
 
       {result && (
-        <div className="w-full min-h-[200px] mb-5 bg-gray-800 rounded-xl flex flex-col justify-center items-center p-6 shadow-lg border border-purple-600">
+        <div data-aos="fade-up" className="w-full min-h-[200px] mb-5 bg-gray-800 rounded-xl flex flex-col justify-center items-center p-6 shadow-lg border border-purple-600">
           <h3 className="text-3xl font-semibold mb-3 text-purple-300">Result</h3>
           <p className="text-lg text-gray-200">
             Label:{" "}
             <span
-              className={`font-bold ${result.label === "FAKE" ? "text-red-400" : "text-green-400"
-                }`}
+              className={`font-bold ${result.label === "FAKE" ? "text-red-400" : "text-green-400"}`}
             >
               {result.label}
             </span>
@@ -243,7 +253,7 @@ const UploadVideo = () => {
         </div>
       )}
 
-      <div className="w-full md:w-[65%] mx-auto mt-8 text-xs text-center px-6 py-5 md:px-2 md:py-2 rounded-full bg-gray-800 text-gray-200">
+      <div data-aos="fade-out" className="w-full md:w-[65%] mx-auto mt-8 text-xs text-center px-6 py-5 md:px-2 md:py-2 rounded-full bg-gray-800 text-gray-200">
         <p>
           By uploading, you agree that DeepShield may store and use the uploaded
           video and derived metadata in accordance with our{" "}

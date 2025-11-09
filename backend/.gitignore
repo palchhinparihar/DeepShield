@@ -14,9 +14,6 @@ __pycache__/
 # Upload files
 /uploads/
 
-# Saved Models
-/saved_models/
-
 # Model files (if large)
 *.h5
 *.keras

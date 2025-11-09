@@ -25,11 +25,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # ============================================================
 #  Prediction Endpoint
 # ============================================================
 @app.post("/predict")
-async def predict(file: UploadFile = File(...), duration: float = Form(None)):
+async def predict(
+    file: UploadFile = File(...), 
+    duration: float = Form(None),
+    user_email: str = Form(None),
+    user_name: str = Form(None),
+    user_profile: str = Form(None)
+):
     # Accept any video/* content-type. Some clients may send variations like
     # 'video/mp4; codecs="avc1.42E01E"' or similar, so use startswith.
     print(file)
@@ -45,7 +52,6 @@ async def predict(file: UploadFile = File(...), duration: float = Form(None)):
     # Generate a unique filename to avoid collisions
     filename = f"uploads/temp_{uuid.uuid4()}.mp4"
 
-    
     # Save the uploaded file temporarily
     with open(filename, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -62,8 +68,11 @@ async def predict(file: UploadFile = File(...), duration: float = Form(None)):
             filename=file.filename,
             label=label,
             confidence=float(confidence),
-            duration=float(duration) if duration is not None else None
-)
+            duration=float(duration) if duration is not None else None,
+            user_email=user_email,
+            user_name=user_name,
+            user_profile=user_profile
+        )
         await db.predictions.insert_one(prediction.dict())
         
         # Log and return
@@ -88,7 +97,6 @@ async def get_predictions():
     return results
 
     
-
 # ============================================================
 #  Root route
 # ============================================================
