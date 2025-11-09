@@ -11,7 +11,17 @@ import PrivacyPolicy from "./components/main/PrivacyPolicy";
 import UploadVideo from "./components/main/UploadVideo";
 import PrivateRoute from "./components/main/PrivateRoute";
 
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import { useEffect } from "react";
+
 const App = () => {
+  useEffect(() => {
+    AOS.init({
+      duration: 1000,
+    });
+  }, []);
+
   return (
     <Router>
       <Navbar />

@@ -192,13 +192,14 @@ const UploadVideo = () => {
             className="flex justify-center items-center text-base md:text-lg gap-2 px-4 py-2.5 rounded-md border font-bold border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white disabled:bg-gray-800 disabled:border-none disabled:text-gray-500 disabled:cursor-not-allowed cursor-pointer"
           >
             <FiActivity size={22} />
-            {uploading ? "Analyzing…" : "Analyze Video"}
+            {uploading ? <span className="animate-pulse">Analyzing…</span> : "Analyze Video"}
           </button>
 
           <button
             type="button"
             onClick={reset}
-            className="flex justify-center items-center text-base md:text-lg gap-2 px-4 py-2 rounded-md border font-bold border-red-600 text-red-600 bg-black hover:text-white hover:bg-red-600 cursor-pointer"
+            disabled={!file}
+            className="flex justify-center items-center text-base md:text-lg gap-2 px-4 py-2 rounded-md border font-bold border-red-600 text-red-600 bg-black hover:text-white hover:bg-red-600 cursor-pointer disabled:bg-gray-800 disabled:border-none disabled:text-gray-500 disabled:cursor-not-allowed"
           >
             <FiTrash2 size={22} />
             Clear
@@ -230,10 +231,15 @@ const UploadVideo = () => {
             </span>
           </p>
           {typeof result.confidence === "number" && (
-            <p className="text-gray-300 mt-1">
+            <p className="text-gray-300 mt-1 mb-2">
               Confidence: {(result.confidence * 100).toFixed(1)}%
             </p>
           )}
+          {result && typeof result.confidence === 'number' ? (
+            result.confidence > 0.5
+              ? `The model predicts this video likely contains the target with ${(result.confidence * 100).toFixed(1)}% confidence - more likely than not, but not guaranteed. Consider manual review if needed.`
+              : `The model predicts this video likely does NOT contain the target (${(result.confidence * 100).toFixed(1)}% confidence). Low confidence means uncertainty; consider manual review.`
+          ) : 'Confidence unavailable.'}
         </div>
       )}
 
