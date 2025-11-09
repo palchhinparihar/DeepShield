@@ -58,7 +58,12 @@ async def predict(file: UploadFile = File(...), duration: float = Form(None)):
         os.remove(filename)
         
         # Save to MongoDB
-        prediction = Prediction(filename=file.filename, label=label, confidence=float(confidence))
+        prediction = Prediction(
+            filename=file.filename,
+            label=label,
+            confidence=float(confidence),
+            duration=float(duration) if duration is not None else None
+)
         await db.predictions.insert_one(prediction.dict())
         
         # Log and return
