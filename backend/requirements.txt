@@ -5,3 +5,6 @@ keras
 opencv-python-headless
 python-multipart
 numpy
+motor==3.7.1
+pymongo==4.15.3
+python-dotenv==1.0.1

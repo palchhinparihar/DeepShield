@@ -4,6 +4,8 @@ from model import predict_video
 import shutil
 import uuid
 import os
+from database.config import db
+from database.schemas import Prediction
 
 # ============================================================
 #  FastAPI Setup
@@ -54,6 +56,11 @@ async def predict(file: UploadFile = File(...), duration: float = Form(None)):
 
         # Clean up temporary file
         os.remove(filename)
+        
+        # Save to MongoDB
+        prediction = Prediction(filename=file.filename, label=label, confidence=float(confidence))
+        await db.predictions.insert_one(prediction.dict())
+        
         # Log and return
         print(f"[INFO] Prediction complete: {file.filename} → {label} ({confidence})")
         return {"label": label, "confidence": confidence}
@@ -62,6 +69,20 @@ async def predict(file: UploadFile = File(...), duration: float = Form(None)):
         print(f"[ERROR] {e}")
         # Return a proper 500 to the client with a concise message
         raise HTTPException(status_code=500, detail=str(e))
+    
+    
+# ============================================================
+#  Get All Predictions
+# ============================================================
+@app.get("/predictions")
+async def get_predictions():
+    results = []
+    async for doc in db.predictions.find().sort("timestamp", -1):
+        doc["_id"] = str(doc["_id"])  # Convert ObjectId to string
+        results.append(doc)
+    return results
+
+    
 
 # ============================================================
 #  Root route
