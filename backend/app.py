@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from model import predict_video
 import shutil
@@ -27,12 +27,22 @@ app.add_middleware(
 #  Prediction Endpoint
 # ============================================================
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)):
+async def predict(file: UploadFile = File(...), duration: float = Form(None)):
+    # Accept any video/* content-type. Some clients may send variations like
+    # 'video/mp4; codecs="avc1.42E01E"' or similar, so use startswith.
+    print(file)
+    if not file or not (file.content_type and file.content_type.startswith("video/")):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a video file (e.g. .mp4).")
+
+    if duration is not None and duration > 30:
+        raise HTTPException(status_code=400, detail="Video duration exceeds 30 seconds limit.")
+    
     # Ensure uploads directory exists
     os.makedirs("uploads", exist_ok=True)
 
     # Generate a unique filename to avoid collisions
     filename = f"uploads/temp_{uuid.uuid4()}.mp4"
+
     
     # Save the uploaded file temporarily
     with open(filename, "wb") as buffer:
@@ -44,13 +54,14 @@ async def predict(file: UploadFile = File(...)):
 
         # Clean up temporary file
         os.remove(filename)
-
+        # Log and return
         print(f"[INFO] Prediction complete: {file.filename} → {label} ({confidence})")
         return {"label": label, "confidence": confidence}
 
     except Exception as e:
         print(f"[ERROR] {e}")
-        return {"error": str(e)}
+        # Return a proper 500 to the client with a concise message
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================
 #  Root route

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiActivity, FiPlusCircle, FiTrash2, FiVideo } from "react-icons/fi";
+import { apiClient } from "../../api/apiClient";
 
 const UploadVideo = () => {
   const [file, setFile] = useState(null);
@@ -9,10 +10,9 @@ const UploadVideo = () => {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
   const videoRef = useRef(null);
-  const previewRef = useRef(null); // track current object URL so we can revoke it when replaced
+  const previewRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // disclaimers shown to the user
   const disclaimers = [
     "Uploaded videos and derived data may be stored for improving the service and auditing.",
     "Detection models are not 100% accurate - results are probabilistic guidance, not legal proof.",
@@ -20,13 +20,10 @@ const UploadVideo = () => {
 
   const reset = () => {
     setFile(null);
-    // revoke any preview blob URL we previously created
     if (previewRef.current) {
       try {
         URL.revokeObjectURL(previewRef.current);
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) { }
       previewRef.current = null;
     }
     setPreview(null);
@@ -54,19 +51,17 @@ const UploadVideo = () => {
       const secs = v.duration;
       setDuration(secs);
       if (secs > 30) {
-        // too long — revoke the blob we created for the metadata check
         try {
           URL.revokeObjectURL(url);
-        } catch (e) {}
+        } catch (e) { }
         setError("Video is longer than 30 seconds. Please select a shorter clip.");
         return;
       }
       setFile(f);
-      // revoke any previous preview URL and keep track of the new one
       if (previewRef.current) {
         try {
           URL.revokeObjectURL(previewRef.current);
-        } catch (e) {}
+        } catch (e) { }
       }
       previewRef.current = url;
       setPreview(url);
@@ -75,7 +70,7 @@ const UploadVideo = () => {
       setError("Could not read video metadata. Try a different file or browser.");
       try {
         URL.revokeObjectURL(url);
-      } catch (e) {}
+      } catch (e) { }
     };
   };
 
@@ -90,43 +85,28 @@ const UploadVideo = () => {
     }
 
     setUploading(true);
+    const form = new FormData();
+    form.append("file", file);
+    if (duration) form.append("duration", duration);
+
     try {
-      const form = new FormData();
-      form.append("video", file);
-
-      // send to backend analyze endpoint - adapt URL to your server
-      const res = await fetch("/api/predict", {
-        method: "POST",
-        body: form,
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Upload failed");
-      }
-
-      const data = await res.json();
-      // expected: { label: 'fake'|'real', score: 0.92, details: '...' }
+      const data = await apiClient("/predict", form);
       setResult(data);
     } catch (err) {
-      setError(err.message || "An error occurred during upload.");
+      console.error("Upload error:", err);
+      setError("An error occurred during upload. Please try again.");
     } finally {
       setUploading(false);
     }
   };
 
-  console.log("Render UploadVideo", { file, preview, duration, error, uploading, result });
-
-  // When the preview URL changes, ensure the <video> element reloads and
-  // revoke the blob when the component unmounts.
+  // handle preview lifecycle
   useEffect(() => {
     if (videoRef.current && preview) {
-      // some browsers need an explicit load() to pick up a new object URL
       try {
         videoRef.current.load();
-      } catch (e) {}
+      } catch (e) { }
     }
-    return () => {};
   }, [preview]);
 
   useEffect(() => {
@@ -134,7 +114,7 @@ const UploadVideo = () => {
       if (previewRef.current) {
         try {
           URL.revokeObjectURL(previewRef.current);
-        } catch (e) {}
+        } catch (e) { }
         previewRef.current = null;
       }
     };
@@ -148,7 +128,10 @@ const UploadVideo = () => {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className={`w-full min-h-[200px] md:min-h-[250px] mb-5 bg-gray-800 rounded-xl flex flex-col justify-center items-center hover:shadow-lg hover:shadow-purple-400 transition duration-300 ${file ? "opacity-90 cursor-not-allowed" : ""}`}>
+        <div
+          className={`w-full min-h-[200px] md:min-h-[250px] mb-5 bg-gray-800 rounded-xl flex flex-col justify-center items-center hover:shadow-lg hover:shadow-purple-400 transition duration-300 ${file ? "opacity-90 cursor-not-allowed" : ""
+            }`}
+        >
           <label
             htmlFor="input-video"
             className="flex flex-col font-medium items-center gap-2 cursor-pointer"
@@ -166,8 +149,9 @@ const UploadVideo = () => {
             id="input-video"
             disabled={uploading}
           />
-
-          <p className="text-orange-300 font-medium mt-2">Maximum upload length: 30 seconds.</p>
+          <p className="text-orange-300 font-medium mt-2">
+            Maximum upload length: 30 seconds.
+          </p>
         </div>
 
         {error && <div className="text-sm text-center text-red-600">{error}</div>}
@@ -179,13 +163,25 @@ const UploadVideo = () => {
               ref={videoRef}
               src={preview}
               controls
-              onLoadedData={() => console.log('video onLoadedData, src=', videoRef.current && videoRef.current.currentSrc)}
-              onError={(e) => { console.error('video preview error', e); setError('Preview failed to load the video file.'); }}
+              onLoadedData={() =>
+                console.log(
+                  "video onLoadedData, src=",
+                  videoRef.current && videoRef.current.currentSrc
+                )
+              }
+              onError={(e) => {
+                console.error("video preview error", e);
+                setError("Preview failed to load the video file.");
+              }}
               className="w-full md:w-[80%] min-h-[200px] rounded-xl mx-auto mt-4"
             />
-            {/* debug: show blob URL so you can inspect it in the page */}
-            <p className="text-sm text-center text-gray-400 mt-2 break-all"><span className="font-semibold">Preview URL:</span> {preview}</p>
-            <p className="text-sm text-center text-gray-400 my-5 rounded-xl"><span className="font-semibold">Duration:</span> {duration ? duration.toFixed(2) : "--"} seconds</p>
+            <p className="text-sm text-center text-gray-400 mt-2 break-all">
+              <span className="font-semibold">Preview URL:</span> {preview}
+            </p>
+            <p className="text-sm text-center text-gray-400 my-5 rounded-xl">
+              <span className="font-semibold">Duration:</span>{" "}
+              {duration ? duration.toFixed(2) : "--"} seconds
+            </p>
           </div>
         )}
 
@@ -196,10 +192,14 @@ const UploadVideo = () => {
             className="flex justify-center items-center text-base md:text-lg gap-2 px-4 py-2.5 rounded-md border font-bold border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white disabled:bg-gray-800 disabled:border-none disabled:text-gray-500 disabled:cursor-not-allowed cursor-pointer"
           >
             <FiActivity size={22} />
-            {uploading ? 'Analyzing…' : 'Analyze Video'}
+            {uploading ? "Analyzing…" : "Analyze Video"}
           </button>
 
-          <button type="button" onClick={reset} className="flex justify-center items-center text-base md:text-lg gap-2 px-4 py-2 rounded-md border font-bold border-red-600 text-red-600 bg-black hover:text-white hover:bg-red-600 cursor-pointer">
+          <button
+            type="button"
+            onClick={reset}
+            className="flex justify-center items-center text-base md:text-lg gap-2 px-4 py-2 rounded-md border font-bold border-red-600 text-red-600 bg-black hover:text-white hover:bg-red-600 cursor-pointer"
+          >
             <FiTrash2 size={22} />
             Clear
           </button>
@@ -207,7 +207,9 @@ const UploadVideo = () => {
       </form>
 
       <div className="flex flex-col justify-center items-center my-6">
-        <h2 className="text-xl md:text-2xl font-semibold mb-2">Important disclaimers</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-2">
+          Important disclaimers
+        </h2>
         <ul className="text-sm text-center text-gray-400 space-y-2">
           {disclaimers.map((d) => (
             <p key={d}>- {d}</p>
@@ -216,18 +218,34 @@ const UploadVideo = () => {
       </div>
 
       {result && (
-        <div className="w-full min-h-[200px] mb-5 bg-gray-100 rounded-xl flex flex-col justify-center items-center hover:border-2 hover:border-blue-500 transition duration-300">
-          <h3 className="font-semibold">Result</h3>
-          <p className="mt-2">Label: <strong>{result.label}</strong></p>
-          {typeof result.score === 'number' && (
-            <p>Confidence: {(result.score * 100).toFixed(1)}%</p>
+        <div className="w-full min-h-[200px] mb-5 bg-gray-800 rounded-xl flex flex-col justify-center items-center p-6 shadow-lg border border-purple-600">
+          <h3 className="text-3xl font-semibold mb-3 text-purple-300">Result</h3>
+          <p className="text-lg text-gray-200">
+            Label:{" "}
+            <span
+              className={`font-bold ${result.label === "FAKE" ? "text-red-400" : "text-green-400"
+                }`}
+            >
+              {result.label}
+            </span>
+          </p>
+          {typeof result.confidence === "number" && (
+            <p className="text-gray-300 mt-1">
+              Confidence: {(result.confidence * 100).toFixed(1)}%
+            </p>
           )}
-          {result.details && <p className="mt-2 text-sm text-gray-500">{result.details}</p>}
         </div>
       )}
 
       <div className="w-full md:w-[65%] mx-auto mt-8 text-xs text-center px-6 py-5 md:px-2 md:py-2 rounded-full bg-gray-800 text-gray-200">
-        <p>By uploading, you agree that DeepShield may store and use the uploaded video and derived metadata in accordance with our <a href="/privacy-policy" className="text-blue-400">Privacy Policy</a>.</p>
+        <p>
+          By uploading, you agree that DeepShield may store and use the uploaded
+          video and derived metadata in accordance with our{" "}
+          <a href="/privacy-policy" className="text-blue-400">
+            Privacy Policy
+          </a>
+          .
+        </p>
       </div>
     </section>
   );
